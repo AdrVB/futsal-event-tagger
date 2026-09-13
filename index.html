@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Futsal Event Tagger</title>
+<link rel="stylesheet" href="ds-styles.css">
+<link rel="stylesheet" href="app.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<main class="app">
+
+  <!-- Language -->
+  <div class="lang-bar" role="group" aria-label="Language">
+    <button class="lang-btn" data-action="lang" data-lang="pt">PT</button>
+    <button class="lang-btn" data-action="lang" data-lang="en">EN</button>
+  </div>
+
+  <!-- Header -->
+  <section class="blueprint match-header">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <div class="match-meta">
+      <div>
+        <label class="eyebrow" for="opponent" data-i18n="opponent">Opponent</label>
+        <input id="opponent" class="input bare opponent-name" placeholder="Opponent name" data-i18n-placeholder="opponentName">
+      </div>
+      <div>
+        <label class="eyebrow" for="date" data-i18n="date">Date</label>
+        <input id="date" type="date" class="input bare">
+      </div>
+    </div>
+    <div class="scoreline">
+      <div class="scores">
+        <div class="score">
+          <span class="score-label" data-i18n="own">Own</span>
+          <div class="score-controls">
+            <button class="btn btn-secondary btn-icon" data-action="score" data-side="own" data-delta="-1" aria-label="Decrease own score" data-i18n-aria="decOwn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+            <span class="score-value" id="own-score">0</span>
+            <button class="btn btn-secondary btn-icon" data-action="score" data-side="own" data-delta="1" aria-label="Increase own score" data-i18n-aria="incOwn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+        </div>
+        <span class="score-dash">–</span>
+        <div class="score">
+          <span class="score-label" data-i18n="opp">Opp</span>
+          <div class="score-controls">
+            <button class="btn btn-secondary btn-icon" data-action="score" data-side="opp" data-delta="-1" aria-label="Decrease opponent score" data-i18n-aria="decOpp"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+            <span class="score-value" id="opp-score">0</span>
+            <button class="btn btn-secondary btn-icon" data-action="score" data-side="opp" data-delta="1" aria-label="Increase opponent score" data-i18n-aria="incOpp"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+        </div>
+      </div>
+      <div class="tag-count"><span id="event-count">0</span> <span data-i18n="tagged">tagged</span></div>
+    </div>
+  </section>
+
+  <!-- Team toggle -->
+  <div class="team-toggle">
+    <button class="toggle" data-action="team" data-team="own" data-i18n="ownTeam">Own Team</button>
+    <button class="toggle" data-action="team" data-team="opponent" data-i18n="opponent">Opponent</button>
+  </div>
+
+  <!-- Squad / opponent tile -->
+  <section id="squad-section">
+    <div class="section-head">
+      <h3 class="section-title" data-i18n="squad">Squad</h3>
+      <button class="btn btn-ghost" data-action="toggle-names" id="edit-names" style="font-size:12px;">Edit Names</button>
+    </div>
+    <div class="squad-grid" id="squad-grid"></div>
+  </section>
+  <section id="opponent-section" hidden>
+    <h3 class="section-title" data-i18n="opponent">Opponent</h3>
+    <button class="blueprint tile opponent" data-action="select-opponent" id="opponent-tile">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="tile-number" data-i18n="opponent">Opponent</div>
+    </button>
+  </section>
+
+  <!-- Event type -->
+  <h3 class="section-title" data-i18n="event">Event</h3>
+  <div class="chips" id="event-types" style="margin-bottom:var(--space-2);"></div>
+
+  <!-- Outcome -->
+  <div class="outcome" id="outcome"></div>
+
+  <!-- Secondary row -->
+  <div class="secondary-row">
+    <div class="switch-row">
+      <button class="switch" role="switch" data-action="toggle" data-key="powerPlay" id="power-play" aria-label="Toggle power play" data-i18n-aria="togglePowerPlay"></button>
+      <span data-i18n="powerPlay">Power Play</span>
+    </div>
+    <div class="field">
+      <label for="set-piece" data-i18n="setPiece">Set Piece</label>
+      <select class="input" id="set-piece">
+        <option value="none" data-i18n="spNone">None</option>
+        <option value="kickin" data-i18n="kickin">Kick-in</option>
+        <option value="freekick" data-i18n="freekick">Free Kick</option>
+        <option value="corner" data-i18n="corner">Corner</option>
+        <option value="penalty" data-i18n="penalty">Penalty</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Confirm -->
+  <button class="btn btn-secondary btn-block btn-cancel" data-action="cancel-edit" id="cancel-edit" data-i18n="cancelEdit" hidden>Cancel Edit</button>
+  <button class="btn btn-primary btn-block btn-confirm" data-action="confirm" id="confirm" disabled>Confirm</button>
+
+  <!-- Log -->
+  <section class="log">
+    <div class="log-head">
+      <h3 class="section-title" data-i18n="matchLog">Match Log</h3>
+      <div class="log-tools">
+        <span class="text-muted" style="font-size:12px;" id="event-count-label">0 events</span>
+        <button class="btn btn-secondary" data-action="export" id="export" data-i18n="exportCsv" disabled>Export CSV</button>
+      </div>
+    </div>
+    <div id="log"></div>
+    <p class="log-empty" id="log-empty" data-i18n="empty">No events tagged yet — the first one you confirm will show up here.</p>
+  </section>
+</main>
+</body>
+</html>
