@@ -25,17 +25,19 @@ const TAGS = [
 // Event data is stored with the English keys above; only what is displayed/exported is translated.
 const I18N = {
   en: {
-    opponent: 'Opponent', opponentName: 'Opponent name', date: 'Date', own: 'Own', opp: 'Opp', tagged: 'tagged',
+    opponent: 'Opponent', opponentName: 'Opponent name', date: 'Date', venue: 'Venue', home: 'Home', away: 'Away', matchday: 'Matchday', own: 'Own', opp: 'Opp', tagged: 'tagged',
     decOwn: 'Decrease own score', incOwn: 'Increase own score', decOpp: 'Decrease opponent score', incOpp: 'Increase opponent score',
     squad: 'Squad', editNames: 'Edit Squad', done: 'Done', name: 'name', nameFor: 'Name for #', numberFor: 'Number for player ',
     accumulated: 'Accumulated', toggleAccumulated: 'Toggle accumulated foul', togglePowerPlay: 'Toggle power play',
     powerPlay: 'Power Play', setPiece: 'Set Piece',
     spNone: 'None', kickin: 'Kick-in', freekick: 'Free Kick', corner: 'Corner', penalty: 'Penalty',
     matchLog: 'Match Log', exportCsv: 'Export CSV', event1: 'event', eventN: 'events',
+    importCsv: 'Import CSV', importConfirm: 'Replace the current match with the imported file?',
+    importError: 'Could not read this file. Use a CSV exported by this app.',
     empty: 'No events tagged yet — tap a player\'s event button to log one.',
     deleteEvent: 'Delete event', noCard: 'No card', cardSuffix: (c) => `${c} card`, undo: 'Undo',
     yes: 'Yes', no: 'No',
-    csv: ['Date', 'Opponent', 'Final Score', 'Seq', 'Team', 'Player #', 'Player Name',
+    csv: ['Date', 'Opponent', 'Venue', 'Matchday', 'Final Score', 'Seq', 'Team', 'Player #', 'Player Name',
       'Event', 'Outcome', 'Card', 'Accumulated Foul', 'Power Play', 'Set Piece'],
     Shot: 'Shot', Pass: 'Pass', Tackle: 'Tackle', Interception: 'Interception', Foul: 'Foul', Turnover: 'Turnover', Save: 'Save',
     Goal: 'Goal', Saved: 'Saved', Blocked: 'Blocked', 'Off Target': 'Off Target',
@@ -45,17 +47,19 @@ const I18N = {
     tagFoul: 'Foul', tagTurnover: 'Lost ball', tagSave: 'Save',
   },
   pt: {
-    opponent: 'Adversário', opponentName: 'Nome do adversário', date: 'Data', own: 'Nós', opp: 'Adv.', tagged: 'registados',
+    opponent: 'Adversário', opponentName: 'Nome do adversário', date: 'Data', venue: 'Local', home: 'Casa', away: 'Fora', matchday: 'Jornada', own: 'Nós', opp: 'Adv.', tagged: 'registados',
     decOwn: 'Diminuir o nosso resultado', incOwn: 'Aumentar o nosso resultado', decOpp: 'Diminuir resultado do adversário', incOpp: 'Aumentar resultado do adversário',
     squad: 'Plantel', editNames: 'Editar Plantel', done: 'Concluído', name: 'nome', nameFor: 'Nome do nº ', numberFor: 'Número do jogador ',
     accumulated: 'Acumulada', toggleAccumulated: 'Alternar falta acumulada', togglePowerPlay: 'Alternar power play',
     powerPlay: 'Power Play', setPiece: 'Bola Parada',
     spNone: 'Nenhuma', kickin: 'Pontapé de Linha Lateral', freekick: 'Livre', corner: 'Canto', penalty: 'Penálti',
     matchLog: 'Registo do Jogo', exportCsv: 'Exportar CSV', event1: 'evento', eventN: 'eventos',
+    importCsv: 'Importar CSV', importConfirm: 'Substituir o jogo atual pelo ficheiro importado?',
+    importError: 'Não foi possível ler este ficheiro. Use um CSV exportado por esta app.',
     empty: 'Ainda sem eventos — toque num botão de evento de um jogador para registar.',
     deleteEvent: 'Apagar evento', noCard: 'Sem cartão', cardSuffix: (c) => `Cartão ${c.toLowerCase()}`, undo: 'Anular',
     yes: 'Sim', no: 'Não',
-    csv: ['Data', 'Adversário', 'Resultado Final', 'Seq', 'Equipa', 'Nº Jogador', 'Nome do Jogador',
+    csv: ['Data', 'Adversário', 'Local', 'Jornada', 'Resultado Final', 'Seq', 'Equipa', 'Nº Jogador', 'Nome do Jogador',
       'Evento', 'Resultado', 'Cartão', 'Falta Acumulada', 'Power Play', 'Bola Parada'],
     Shot: 'Remate', Pass: 'Passe', Tackle: 'Desarme', Interception: 'Interceção', Foul: 'Falta', Turnover: 'Perda de Bola', Save: 'Defesa',
     Goal: 'Golo', Saved: 'Defendido', Blocked: 'Bloqueado', 'Off Target': 'Fora',
@@ -86,6 +90,7 @@ const today = () => {
 const state = {
   lang: storedLang(),
   opponent: '', date: today(),
+  venue: '', matchday: '', // venue: '' | 'home' | 'away'
   ownScore: 0, oppScore: 0,
   // Squad slots; numbers are editable, so events keep the number/name the player had when tagged.
   squad: Array.from({ length: CONFIG.squadSize }, (_, i) => ({ number: String(i + 1), name: '' })),
@@ -153,7 +158,7 @@ function exportCsv() {
   const score = `${s.ownScore}-${s.oppScore}`;
   const yesNo = (v) => t(v ? 'yes' : 'no');
   const rows = [...s.events].sort((a, b) => a.seq - b.seq).map((e) => [
-    s.date, s.opponent, score, e.seq,
+    s.date, s.opponent, s.venue ? t(s.venue) : '', s.matchday, score, e.seq,
     e.team === 'own' ? t('own') : t('opponent'),
     e.team === 'own' ? e.player : '',
     e.playerName,
@@ -176,8 +181,109 @@ function exportCsv() {
   URL.revokeObjectURL(a.href);
 }
 
+// — import: resume a match from a CSV this app exported (either language, ',' or ';' separated) —
+
+const CSV_FIELDS = ['date', 'opponent', 'venue', 'matchday', 'score', 'seq', 'team', 'number', 'name',
+  'event', 'outcome', 'card', 'acc', 'powerPlay', 'setPiece']; // same order as I18N.*.csv
+const EVENT_KEYS = [...new Set(TAGS.map((tag) => tag.eventType))];
+const SHOT_OUTCOMES = ['Goal', 'Saved', 'Blocked', 'Off Target'];
+const PASS_OUTCOMES = ['Complete', 'Incomplete'];
+
+function parseCsv(text) {
+  text = text.replace(/^﻿/, '');
+  const first = text.split(/\r?\n/, 1)[0];
+  const delim = (first.match(/;/g) || []).length > (first.match(/,/g) || []).length ? ';' : ',';
+  const rows = [];
+  let row = [], cell = '', quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) {
+      if (c !== '"') cell += c;
+      else if (text[i + 1] === '"') { cell += '"'; i++; }
+      else quoted = false;
+    } else if (c === '"') quoted = true;
+    else if (c === delim) { row.push(cell); cell = ''; }
+    else if (c === '\n' || c === '\r') {
+      if (c === '\r' && text[i + 1] === '\n') i++;
+      row.push(cell); rows.push(row); row = []; cell = '';
+    } else cell += c;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter((r) => r.some((c) => c.trim() !== ''));
+}
+
+// Squad slots get the numbers/names found in the events; unused slots keep their current number.
+function squadFromEvents(events) {
+  const squad = state.squad.map((p) => ({ ...p }));
+  const used = new Set(events.filter((e) => e.team === 'own').map((e) => e.player));
+  [...events].sort((a, b) => a.seq - b.seq).forEach((e) => {
+    if (e.team !== 'own') return;
+    let slot = squad.find((p) => p.number === e.player);
+    if (!slot) {
+      slot = squad.find((p) => !used.has(p.number));
+      if (slot) slot.number = e.player;
+    }
+    if (slot && e.playerName) slot.name = e.playerName;
+  });
+  return squad;
+}
+
+function importCsv(text) {
+  const [header = [], ...rows] = parseCsv(text);
+  const head = header.map((h) => h.trim());
+  const lang = Object.keys(I18N).find((l) => I18N[l].csv.filter((h) => head.includes(h)).length >= 10);
+  if (!lang) throw new Error('unrecognised header');
+  const L = I18N[lang];
+  const col = Object.fromEntries(CSV_FIELDS.map((f, i) => [f, head.indexOf(L.csv[i])]));
+  const get = (r, f) => (col[f] >= 0 ? (r[col[f]] ?? '').trim() : '');
+  const keyOf = (label, keys) => keys.find((k) => L[k] === label);
+
+  const events = rows.map((r, i) => {
+    const eventType = keyOf(get(r, 'event'), EVENT_KEYS);
+    if (!eventType) return null;
+    const own = get(r, 'team') !== L.opponent;
+    const outcome = get(r, 'outcome');
+    return {
+      id: Date.now() + Math.random(),
+      seq: Number(get(r, 'seq')) || i + 1,
+      team: own ? 'own' : 'opponent',
+      player: own ? get(r, 'number') : 'OPP',
+      playerName: own ? get(r, 'name') : '',
+      eventType,
+      outcomeShot: eventType === 'Shot' ? keyOf(outcome, SHOT_OUTCOMES) || null : null,
+      outcomePass: eventType === 'Pass' ? keyOf(outcome, PASS_OUTCOMES) || null : null,
+      foulCard: keyOf(get(r, 'card'), CARDS) || 'None',
+      accumulatedFoul: get(r, 'acc') === L.yes,
+      powerPlay: get(r, 'powerPlay') === L.yes,
+      setPiece: Object.keys(SET_PIECE_KEYS).find((k) => L[SET_PIECE_KEYS[k]] === get(r, 'setPiece')) || 'none',
+    };
+  }).filter(Boolean).sort((a, b) => b.seq - a.seq); // log is newest first
+  if (!events.length) throw new Error('no events');
+
+  const first = rows[0];
+  const date = get(first, 'date');
+  const dmy = date.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); // spreadsheet apps may rewrite the ISO date
+  const score = get(first, 'score').match(/(\d+)\s*-\s*(\d+)/);
+  Object.assign(state, {
+    opponent: get(first, 'opponent'),
+    date: dmy ? `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}` : date || state.date,
+    venue: keyOf(get(first, 'venue'), ['home', 'away']) || '',
+    matchday: get(first, 'matchday'),
+    ownScore: score ? Number(score[1]) : 0,
+    oppScore: score ? Number(score[2]) : 0,
+    squad: squadFromEvents(events),
+    events,
+    nextSeq: Math.max(...events.map((e) => e.seq)) + 1,
+    powerPlay: false, setPiece: 'none',
+  });
+  $('opponent').value = state.opponent;
+  $('date').value = state.date;
+  $('matchday').value = state.matchday;
+}
+
 const handlers = {
   export: () => exportCsv(),
+  import: () => $('import-file').click(),
   lang: ({ lang }) => {
     state.lang = lang;
     try { localStorage.setItem('lang', lang); } catch { /* storage unavailable */ }
@@ -186,6 +292,7 @@ const handlers = {
     const key = side === 'own' ? 'ownScore' : 'oppScore';
     state[key] = Math.max(0, state[key] + Number(delta));
   },
+  venue: ({ venue }) => { state.venue = state.venue === venue ? '' : venue; },
   'toggle-names': () => { state.editingNames = !state.editingNames; },
   tag: ({ player, tag }) => tagEvent(player, tag),
   toggle: ({ key }) => { state[key] = !state[key]; },
@@ -220,6 +327,7 @@ function renderPlayers() {
     </div>`);
   });
   $('players').innerHTML = rows.join('');
+  $('players').style.setProperty('--cols', Math.ceil(s.squad.length / 2)); // dashboard: half the squad per row
   $('edit-names').textContent = t(s.editingNames ? 'done' : 'editNames');
 
   $('opponent-row').innerHTML = `<div class="player-row opponent">
@@ -300,6 +408,8 @@ function render() {
 
   $('own-score').textContent = s.ownScore;
   $('opp-score').textContent = s.oppScore;
+  document.querySelectorAll('[data-action="venue"]').forEach((b) =>
+    b.setAttribute('aria-pressed', b.dataset.venue === s.venue));
 
   renderPlayers();
 
@@ -331,6 +441,7 @@ document.addEventListener('input', (ev) => {
   const t = ev.target;
   if (t.id === 'opponent') state.opponent = t.value;
   else if (t.id === 'date') state.date = t.value;
+  else if (t.id === 'matchday') state.matchday = t.value;
   else if (t.dataset.slot) state.squad[t.dataset.slot][t.dataset.field] = t.value.trim(); // no re-render: keeps focus while typing
 });
 
@@ -338,6 +449,19 @@ document.addEventListener('input', (ev) => {
 $('opponent').addEventListener('change', () => render());
 
 $('set-piece').addEventListener('change', (ev) => { state.setPiece = ev.target.value; });
+
+$('import-file').addEventListener('change', async (ev) => {
+  const file = ev.target.files[0];
+  ev.target.value = ''; // allow re-importing the same file
+  if (!file) return;
+  if (state.events.length && !confirm(t('importConfirm'))) return;
+  try {
+    importCsv(await file.text());
+  } catch {
+    alert(t('importError'));
+  }
+  render();
+});
 
 $('opponent').value = state.opponent;
 $('date').value = state.date;

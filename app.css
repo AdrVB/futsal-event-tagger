@@ -31,6 +31,9 @@ input[type="date"] { color-scheme: light; }
 }
 .input.bare { border: none; background: transparent; padding: 0; }
 .input.opponent-name { font-family: var(--font-heading); font-weight: 600; font-size: 22px; }
+.venue-toggle { display: flex; gap: 4px; }
+.venue-toggle .lang-btn { min-width: 0; height: 28px; font-size: 12px; }
+.input.matchday { width: 56px; }
 
 .scoreline {
   display: flex; align-items: center; justify-content: space-between;
@@ -82,7 +85,7 @@ input[type="date"] { color-scheme: light; }
 /* — player rows: one tap on an event button logs it — */
 .player-row { padding: var(--space-2) 0 var(--space-3); border-bottom: 1px solid var(--color-divider); }
 .player-row.opponent {
-  padding: var(--space-2) var(--space-2) var(--space-3); margin-bottom: var(--space-4);
+  padding: var(--space-2) var(--space-2) var(--space-3); margin-top: var(--space-4);
   border: 1px solid var(--color-divider); background: var(--color-neutral-100);
 }
 .player-head { display: flex; align-items: baseline; gap: var(--space-2); margin-bottom: 6px; min-height: 24px; }
@@ -159,3 +162,70 @@ input[type="date"] { color-scheme: light; }
 .log-foul { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-2); }
 .log-actions { display: flex; gap: 4px; flex: none; }
 .log-empty { font-size: 14px; color: color-mix(in srgb, var(--color-text) 50%, transparent); }
+
+/* — dashboard: on wide screens every player card fits on one screen, no page scroll — */
+@media (min-width: 900px) {
+  .app {
+    max-width: none; height: 100vh; box-sizing: border-box; padding: var(--space-3) var(--space-4);
+    display: grid; grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); gap: var(--space-3);
+  }
+
+  .topbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
+  .lang-bar { order: 1; margin: 0; }
+  .match-header {
+    flex: 1; margin: 0; padding: var(--space-2) var(--space-4);
+    display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+  }
+  .match-meta { flex-wrap: nowrap; min-width: 0; }
+  .match-meta > :first-child { min-width: 120px; }
+  .input.opponent-name { font-size: 18px; }
+  .scoreline { margin-top: 0; flex-wrap: nowrap; }
+  .score-value { font-size: 24px; }
+  .modifiers { position: static; margin: 0; padding: 0; border: 0; flex-wrap: nowrap; }
+  .modifiers .field { min-width: 130px; }
+
+  .board { display: grid; grid-template-columns: minmax(0, 1fr) clamp(220px, 22vw, 300px); gap: var(--space-4); min-height: 0; }
+  .players-panel { display: flex; flex-direction: column; min-height: 0; }
+  .player-grid { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  #players {
+    flex: 1; min-height: 0; overflow: auto;
+    /* squad split in two rows: --cols is set from the squad size (7 for 14 players) */
+    display: grid; grid-template-columns: repeat(var(--cols, 7), minmax(0, 1fr));
+    grid-auto-rows: minmax(0, 1fr); gap: var(--space-2);
+  }
+
+  .player-row, .player-row.opponent {
+    display: flex; flex-direction: column; min-height: 0; margin: 0;
+    padding: 6px; border: 1px solid var(--color-divider);
+  }
+  .player-head { margin-bottom: 4px; min-height: 22px; }
+  .player-number { font-size: 16px; }
+  .tag-grid { flex: 1; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); }
+  .tag-btn { min-height: 26px; font-size: 11px; padding: 2px; }
+
+  /* opponent: one full-width strip under the squad, all buttons in a single line */
+  .player-row.opponent { flex: none; flex-direction: row; align-items: center; gap: var(--space-3); }
+  .player-row.opponent .player-head { margin: 0; min-width: 90px; }
+  .player-row.opponent .tag-grid { grid-template-columns: repeat(11, minmax(0, 1fr)); }
+  .player-row.opponent .tag-btn { min-height: 40px; }
+
+  .log {
+    margin: 0; min-height: 0; overflow: auto;
+    padding-left: var(--space-4); border-left: 1px solid var(--color-divider);
+  }
+  .log-head { flex-wrap: wrap; gap: var(--space-2); }
+  .undo-bar {
+    position: static; transform: none; width: auto; max-width: none;
+    padding: var(--space-2); margin-bottom: var(--space-2);
+    border: 1px solid var(--color-divider); background: var(--color-neutral-100);
+  }
+}
+/* the log header already shows the event count */
+@media (min-width: 900px) and (max-width: 1199px) {
+  .tag-count { display: none; }
+  /* narrower cards: smaller labels so words wrap between, not inside, words */
+  .tag-btn { font-size: 10px; padding: 0 1px; overflow-wrap: normal; }
+}
+@media (min-width: 900px) and (max-width: 999px) {
+  .tag-btn { font-size: 9px; hyphens: auto; -webkit-hyphens: auto; }
+}

@@ -10,6 +10,7 @@
 </head>
 <body>
 <main class="app">
+<header class="topbar">
 
   <!-- Language -->
   <div class="lang-bar" role="group" aria-label="Language">
@@ -28,6 +29,17 @@
       <div>
         <label class="eyebrow" for="date" data-i18n="date">Date</label>
         <input id="date" type="date" class="input bare">
+      </div>
+      <div>
+        <span class="eyebrow" data-i18n="venue">Venue</span>
+        <div class="venue-toggle" role="group">
+          <button class="lang-btn" data-action="venue" data-venue="home" data-i18n="home">Home</button>
+          <button class="lang-btn" data-action="venue" data-venue="away" data-i18n="away">Away</button>
+        </div>
+      </div>
+      <div>
+        <label class="eyebrow" for="matchday" data-i18n="matchday">Matchday</label>
+        <input id="matchday" type="number" min="1" inputmode="numeric" class="input bare matchday" placeholder="—">
       </div>
     </div>
     <div class="scoreline">
@@ -71,15 +83,19 @@
       </select>
     </div>
   </div>
+</header>
 
-  <!-- One row of event buttons per player: one tap logs the event -->
-  <section>
-    <div id="opponent-row"></div>
+<div class="board">
+  <!-- One card of event buttons per player: one tap logs the event -->
+  <section class="players-panel">
     <div class="section-head">
       <h3 class="section-title" data-i18n="squad">Squad</h3>
       <button class="btn btn-ghost" data-action="toggle-names" id="edit-names" style="font-size:12px;">Edit Names</button>
     </div>
-    <div id="players"></div>
+    <div class="player-grid">
+      <div id="players"></div>
+      <div id="opponent-row"></div>
+    </div>
   </section>
 
   <!-- Log -->
@@ -88,18 +104,22 @@
       <h3 class="section-title" data-i18n="matchLog">Match Log</h3>
       <div class="log-tools">
         <span class="text-muted" style="font-size:12px;" id="event-count-label">0 events</span>
+        <button class="btn btn-secondary" data-action="import" data-i18n="importCsv">Import CSV</button>
+        <input type="file" id="import-file" accept=".csv,text/csv" hidden>
         <button class="btn btn-secondary" data-action="export" id="export" data-i18n="exportCsv" disabled>Export CSV</button>
       </div>
     </div>
+
+    <!-- Last event + undo -->
+    <div class="undo-bar" id="undo-bar" hidden>
+      <span class="undo-text" id="undo-text"></span>
+      <button class="btn btn-secondary" data-action="undo" data-i18n="undo">Undo</button>
+    </div>
+
     <div id="log"></div>
     <p class="log-empty" id="log-empty" data-i18n="empty">No events tagged yet — tap a player's event button to log one.</p>
   </section>
-
-  <!-- Last event + undo -->
-  <div class="undo-bar" id="undo-bar" hidden>
-    <span class="undo-text" id="undo-text"></span>
-    <button class="btn btn-secondary" data-action="undo" data-i18n="undo">Undo</button>
-  </div>
+</div>
 </main>
 </body>
 </html>
