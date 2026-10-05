@@ -54,37 +54,8 @@
     </div>
   </section>
 
-  <!-- Team toggle -->
-  <div class="team-toggle">
-    <button class="toggle" data-action="team" data-team="own" data-i18n="ownTeam">Own Team</button>
-    <button class="toggle" data-action="team" data-team="opponent" data-i18n="opponent">Opponent</button>
-  </div>
-
-  <!-- Squad / opponent tile -->
-  <section id="squad-section">
-    <div class="section-head">
-      <h3 class="section-title" data-i18n="squad">Squad</h3>
-      <button class="btn btn-ghost" data-action="toggle-names" id="edit-names" style="font-size:12px;">Edit Names</button>
-    </div>
-    <div class="squad-grid" id="squad-grid"></div>
-  </section>
-  <section id="opponent-section" hidden>
-    <h3 class="section-title" data-i18n="opponent">Opponent</h3>
-    <button class="blueprint tile opponent" data-action="select-opponent" id="opponent-tile">
-      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-      <div class="tile-number" data-i18n="opponent">Opponent</div>
-    </button>
-  </section>
-
-  <!-- Event type -->
-  <h3 class="section-title" data-i18n="event">Event</h3>
-  <div class="chips" id="event-types" style="margin-bottom:var(--space-2);"></div>
-
-  <!-- Outcome -->
-  <div class="outcome" id="outcome"></div>
-
-  <!-- Secondary row -->
-  <div class="secondary-row">
+  <!-- Modifiers: applied to the next tagged event -->
+  <div class="secondary-row modifiers">
     <div class="switch-row">
       <button class="switch" role="switch" data-action="toggle" data-key="powerPlay" id="power-play" aria-label="Toggle power play" data-i18n-aria="togglePowerPlay"></button>
       <span data-i18n="powerPlay">Power Play</span>
@@ -101,9 +72,15 @@
     </div>
   </div>
 
-  <!-- Confirm -->
-  <button class="btn btn-secondary btn-block btn-cancel" data-action="cancel-edit" id="cancel-edit" data-i18n="cancelEdit" hidden>Cancel Edit</button>
-  <button class="btn btn-primary btn-block btn-confirm" data-action="confirm" id="confirm" disabled>Confirm</button>
+  <!-- One row of event buttons per player: one tap logs the event -->
+  <section>
+    <div id="opponent-row"></div>
+    <div class="section-head">
+      <h3 class="section-title" data-i18n="squad">Squad</h3>
+      <button class="btn btn-ghost" data-action="toggle-names" id="edit-names" style="font-size:12px;">Edit Names</button>
+    </div>
+    <div id="players"></div>
+  </section>
 
   <!-- Log -->
   <section class="log">
@@ -115,8 +92,14 @@
       </div>
     </div>
     <div id="log"></div>
-    <p class="log-empty" id="log-empty" data-i18n="empty">No events tagged yet — the first one you confirm will show up here.</p>
+    <p class="log-empty" id="log-empty" data-i18n="empty">No events tagged yet — tap a player's event button to log one.</p>
   </section>
+
+  <!-- Last event + undo -->
+  <div class="undo-bar" id="undo-bar" hidden>
+    <span class="undo-text" id="undo-text"></span>
+    <button class="btn btn-secondary" data-action="undo" data-i18n="undo">Undo</button>
+  </div>
 </main>
 </body>
 </html>

@@ -64,45 +64,49 @@ input[type="date"] { color-scheme: light; }
   letter-spacing: .06em; color: var(--color-accent-700);
 }
 
-/* — selectable surfaces: toggle, chip, tile share one selected treatment — */
-.toggle, .chip, .tile {
+/* — selectable chips (foul card on log rows) — */
+.chip {
   font-family: var(--font-heading); font-weight: 600;
   border: 1px solid var(--color-divider); background: transparent;
   color: var(--color-text); cursor: pointer; border-radius: 0;
 }
-.toggle[aria-pressed="true"], .chip[aria-pressed="true"], .tile[aria-pressed="true"] {
+.chip[aria-pressed="true"] {
   border-color: var(--color-accent); background: var(--color-accent-100); color: var(--color-accent-800);
 }
 .chip[data-card="Yellow"][aria-pressed="true"] { border-color: #c9a227; background: #fdf3d6; color: #7a5e0a; }
 .chip[data-card="Red"][aria-pressed="true"] { border-color: #b23a3a; background: #fbe2e2; color: #7a1f1f; }
 
-.team-toggle { display: flex; gap: var(--space-2); margin-bottom: var(--space-4); }
-.toggle { flex: 1; height: 56px; font-size: 16px; }
-
-.chip { font-size: 14px; padding: 12px 18px; min-height: 48px; }
+.chip-sm { font-size: 12px; padding: 4px 10px; min-height: 32px; }
 .chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 
-.squad-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-2); margin-bottom: var(--space-4);
+/* — player rows: one tap on an event button logs it — */
+.player-row { padding: var(--space-2) 0 var(--space-3); border-bottom: 1px solid var(--color-divider); }
+.player-row.opponent {
+  padding: var(--space-2) var(--space-2) var(--space-3); margin-bottom: var(--space-4);
+  border: 1px solid var(--color-divider); background: var(--color-neutral-100);
 }
-.tile {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: 64px; padding: 8px 4px; font-family: var(--font-body); font-weight: 400;
-}
-.tile-number { font-family: var(--font-heading); font-weight: 600; font-size: 24px; }
-.tile-name { font-size: 11px; opacity: .75; line-height: 1.2; }
-.tile .input { margin-top: 4px; font-size: 11px; padding: 2px 4px; min-height: 22px; height: 22px; text-align: center; }
-.tile.opponent { width: 100%; margin-bottom: var(--space-4); }
-.tile.opponent .tile-number { font-size: 22px; }
+.player-head { display: flex; align-items: baseline; gap: var(--space-2); margin-bottom: 6px; min-height: 24px; }
+.player-number { font-family: var(--font-heading); font-weight: 600; font-size: 18px; }
+.player-name { font-size: 13px; opacity: .75; }
+.player-number-input { font-family: var(--font-heading); font-weight: 600; font-size: 16px; padding: 2px 4px; min-height: 26px; height: 26px; width: 48px; text-align: center; }
+.player-name-input { font-size: 13px; padding: 2px 6px; min-height: 26px; height: 26px; max-width: 180px; }
 
-/* — outcome reveal — */
-.outcome {
-  overflow: hidden; max-height: 0; opacity: 0;
-  transition: max-height .25s ease, opacity .2s ease;
+.tag-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.tag-btn {
+  font-family: var(--font-heading); font-weight: 600; font-size: 12px; line-height: 1.15;
+  min-height: 44px; padding: 4px 2px; border-radius: 0; cursor: pointer;
+  border: 1px solid var(--color-divider); background: var(--color-surface, transparent); color: var(--color-text);
+  touch-action: manipulation; overflow-wrap: anywhere;
 }
-.outcome.open { max-height: 340px; opacity: 1; margin-bottom: var(--space-3); }
-.card-row { margin-bottom: var(--space-3); }
+.tag-btn[data-group="shot"] { border-color: var(--color-accent-300); }
+.tag-btn[data-tag="tagGoal"] { background: var(--color-accent-100); color: var(--color-accent-800); border-color: var(--color-accent); }
+.tag-btn[data-group="pass"] { border-color: var(--color-accent-2-300); }
+.tag-btn:active { background: var(--color-accent-200); }
+.tag-btn.flash { animation: tag-flash .6s ease; }
+@keyframes tag-flash {
+  0% { background: var(--color-accent); color: #fff; }
+  100% { background: var(--color-surface, transparent); }
+}
 
 /* — switch — */
 .switch-row { display: flex; align-items: center; gap: 10px; font-size: 14px; }
@@ -123,10 +127,19 @@ input[type="date"] { color-scheme: light; }
 }
 .secondary-row .field { flex: 1; min-width: 160px; }
 .secondary-row .field > label { font-size: 11px; }
+.modifiers {
+  position: sticky; top: 0; z-index: 2; margin: 0 0 var(--space-4);
+  padding: var(--space-2) 0; background: var(--color-bg); border-bottom: 1px solid var(--color-divider);
+}
 
-/* — confirm — */
-.btn-cancel { height: 44px; margin-bottom: var(--space-2); }
-.btn-confirm { height: 60px; font-size: 18px; }
+/* — last event + undo — */
+.undo-bar {
+  position: fixed; left: 50%; bottom: 0; transform: translateX(-50%); z-index: 3;
+  width: 100%; max-width: 560px; box-sizing: border-box;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  padding: var(--space-2) var(--space-3); background: var(--color-bg); border-top: 1px solid var(--color-divider);
+}
+.undo-text { font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* — log — */
 .log { margin-top: var(--space-8); }
@@ -143,5 +156,6 @@ input[type="date"] { color-scheme: light; }
 .log-meta { font-size: 11px; margin-bottom: 2px; }
 .log-title { font-family: var(--font-heading); font-weight: 600; font-size: 16px; }
 .log-detail { font-size: 12px; opacity: .8; margin-top: 2px; }
+.log-foul { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-2); }
 .log-actions { display: flex; gap: 4px; flex: none; }
 .log-empty { font-size: 14px; color: color-mix(in srgb, var(--color-text) 50%, transparent); }
